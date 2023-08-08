@@ -16,7 +16,7 @@ import moment from 'moment';
 const Iframe = (props) => {
   return (
     <div>
-      <iframe {...props} style={{ border: 0 }} title="graph" />
+      <iframe {...props} style={{ border: 0, display: 'block', width: '100%' }} title="graph" />
     </div>
   );
 };
@@ -29,6 +29,7 @@ const Statistics = () => {
   const [showTable, setShowTable] = useState(true);
   const [showGraphs, setShowGraphs] = useState(true);
   const [layout, setLayout] = useState('horizontal');
+  const [machine, setMachine] = useState({})
 
   useEffect(() => {
     if (!showTable) setShowGraphs(true);
@@ -72,6 +73,7 @@ const Statistics = () => {
     }
 
     setDirectories(tempDir);
+    setMachine(_.get(routes, allPaths.join('.children.')))
   }, [location.pathname]);
 
   return (
@@ -146,10 +148,10 @@ const Statistics = () => {
                       height: '100%',
                       flexGrow: 1,
                       overflow: 'auto',
-                      border: '1px solid rgb(50,50,50)'
+                      border: '1px solid rgb(50,50,50)',
                     }}
                   >
-                    <ServicesTable />
+                    <ServicesTable machine={machine.machine_name} />
                   </Card>
                 </Panel>
               </>
@@ -186,7 +188,7 @@ const Statistics = () => {
                       <Iframe
                         id="cr-embed-16000US5367000-demographics-age-distribution_by_decade-total"
                         class="census-reporter-embed"
-                        src={`http://localhost:3000/d-solo/e0cfe032-7ba6-4345-8c8c-ecdfe403b4c5/cms-resources?orgId=1&refresh=5s&from=${past.valueOf()}&to=${now.valueOf()}&panelId=${index+1}`}
+                        src={`http://localhost:3000/d-solo/${machine.dashboard}/${machine.machine_name?.toLowerCase()}-resources?orgId=1&refresh=5s&from=${past.valueOf()}&to=${now.valueOf()}&panelId=${index+1}`}
                         frameBorder="0"
                         width="100%"
                         height="100%"

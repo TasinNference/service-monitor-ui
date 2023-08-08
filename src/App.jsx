@@ -188,14 +188,12 @@ function App() {
           }}
         >
           <Routes>
-            <Route path={rootPath}>
               {routePaths.map((path, index) => (
                 <Route
-                  path={path.slice(1)}
+                  path={rootPath + path}
                   element={<Statistics key={index} />}
                 />
               ))}
-            </Route>
             <Route path="*" element={<Error />} />
           </Routes>
         </div>
