@@ -11,6 +11,7 @@ import { useLocation } from 'react-router-dom';
 import { rootPath } from '../../configs/routesConfig';
 import _ from 'lodash';
 import { routes } from '../../utils/routesHelper';
+import moment from 'moment';
 
 const Iframe = (props) => {
   return (
@@ -113,7 +114,7 @@ const Statistics = () => {
         </div>
       </Card>
       <div style={{ margin: '0 15px 15px 15px' }}>
-        {true ? (
+        {false ? (
           <Card
             sx={{
               display: 'flex',
@@ -171,21 +172,26 @@ const Statistics = () => {
                       height: '100%',
                       flexGrow: 1,
                       display: 'grid',
+                      overflow: 'auto',
                       [panelHeight > 300
                         ? 'gridTemplateRows'
                         : 'gridTemplateColumns']: '1fr 1fr 1fr'
                     }}
                   >
-                    {[...Array(3).keys()].map((item, index) => (
+                    {[...Array(3).keys()].map((item, index) => {
+                      const now = moment();
+                      const past = now.clone().subtract(30, 'm')
+
+                      return (
                       <Iframe
                         id="cr-embed-16000US5367000-demographics-age-distribution_by_decade-total"
                         class="census-reporter-embed"
-                        src="https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606&layer=mapnik"
-                        frameborder="0"
+                        src={`http://localhost:3000/d-solo/e0cfe032-7ba6-4345-8c8c-ecdfe403b4c5/cms-resources?orgId=1&refresh=5s&from=${past.valueOf()}&to=${now.valueOf()}&panelId=${index+1}`}
+                        frameBorder="0"
                         width="100%"
                         height="100%"
                       ></Iframe>
-                    ))}
+                    )})}
                   </Card>
                 </Panel>
               </>
