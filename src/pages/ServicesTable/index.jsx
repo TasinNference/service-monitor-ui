@@ -10,7 +10,7 @@ import {
 import { InfluxDB, FluxTableMetaData } from "@influxdata/influxdb-client";
 import { useEffect, useState } from 'react';
 
-const ServicesTable = ({machine}) => {
+const ServicesTable = ({machine, refresh}) => {
   const [loading, setLoading] = useState(true);
   const queryApi = new InfluxDB({
     url: "http://localhost:8086",
@@ -18,22 +18,22 @@ const ServicesTable = ({machine}) => {
       "0O_ouBs_TsOOcEuqxNtbrMhdNuQkrPM27Nga-ks1wcaSQnaob-fm4_CGOmYijhkHKR0h_jD5E4MW-qisrdK4kw==",
   }).getQueryApi("pramana");
   const fluxQuery =
-  `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
+  `from(bucket:"metrics") |> range(start: -1s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
   const [rows, setRows] = useState([])
   async function getRows() {
-    const rowsArr = [];
+    const rowsArr = {};
     for await (const { values, tableMeta } of queryApi.iterateRows(fluxQuery)) {
       // the following line creates an object for each row
       const o = tableMeta.toObject(values);
       // console.log(JSON.stringify(o, null, 2))
-      rowsArr.push(o);
+      rowsArr[o._field] = o;
 
       // alternatively, you can get only a specific column value without
       // the need to create an object for every row
       // console.log(tableMeta.get(row, '_time'))
     }
     console.log(rowsArr, "rows");
-    setRows(rowsArr)
+    setRows(Object.values(rowsArr).sort((a,b) => statuses[a._value].order - statuses[b._value].order))
     setLoading(false)
   }
 
@@ -41,11 +41,23 @@ const ServicesTable = ({machine}) => {
     if(machine) getRows();
   }, [machine]);
 
-  const statusColors = {
-    RUNNING: 'success',
-    STOPPED: 'warning',
-    FATAL: 'error',
-    STARTING: 'info'
+  const statuses = {
+    RUNNING: {
+      color: 'success',
+      order: 4
+    },
+    STOPPED: {
+      color: 'warning',
+      order: 2,
+    },
+    FATAL: {
+      color: 'error',
+      order: 1,
+    },
+    STARTING: {
+      color: 'info',
+      order: 3,
+    }
   };
 
   const columns = [
@@ -57,6 +69,10 @@ const ServicesTable = ({machine}) => {
   const createData = (status, name, lastUpdated) => {
     return { status, name, lastUpdated };
   };
+
+  useEffect(() => {
+    getRows()
+  }, [refresh])
 
   // const rows = [
   //   createData('RUNNING', 'node.js', new Date()),
@@ -84,7 +100,7 @@ const ServicesTable = ({machine}) => {
           {rows.map((row) => (
             <TableRow>
               <TableCell>
-                <Chip color={statusColors[row._value]} label={row._value} />
+                <Chip color={statuses[row._value].color} label={row._value} />
               </TableCell>
               <TableCell>{row._field}</TableCell>
               <TableCell>
