@@ -7,19 +7,17 @@ import {
   TableHead,
   TableRow
 } from '@mui/material';
-import { InfluxDB, FluxTableMetaData } from "@influxdata/influxdb-client";
+import { InfluxDB, FluxTableMetaData } from '@influxdata/influxdb-client';
 import { useEffect, useState } from 'react';
 
-const ServicesTable = ({machine, refresh}) => {
+const ServicesTable = ({ machine, refresh }) => {
   const [loading, setLoading] = useState(true);
   const queryApi = new InfluxDB({
-    url: "http://localhost:8086",
-    token:
-      "0O_ouBs_TsOOcEuqxNtbrMhdNuQkrPM27Nga-ks1wcaSQnaob-fm4_CGOmYijhkHKR0h_jD5E4MW-qisrdK4kw==",
-  }).getQueryApi("pramana");
-  const fluxQuery =
-  `from(bucket:"metrics") |> range(start: -1s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
-  const [rows, setRows] = useState([])
+    url: 'http://localhost:8086',
+    token: process.env.REACT_APP_INFLUX_TOKEN
+  }).getQueryApi('pramana');
+  const fluxQuery = `from(bucket:"metrics") |> range(start: -1s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
+  const [rows, setRows] = useState([]);
   async function getRows() {
     const rowsArr = {};
     for await (const { values, tableMeta } of queryApi.iterateRows(fluxQuery)) {
@@ -32,13 +30,17 @@ const ServicesTable = ({machine, refresh}) => {
       // the need to create an object for every row
       // console.log(tableMeta.get(row, '_time'))
     }
-    console.log(rowsArr, "rows");
-    setRows(Object.values(rowsArr).sort((a,b) => statuses[a._value].order - statuses[b._value].order))
-    setLoading(false)
+    console.log(rowsArr, 'rows');
+    setRows(
+      Object.values(rowsArr).sort(
+        (a, b) => statuses[a._value].order - statuses[b._value].order
+      )
+    );
+    setLoading(false);
   }
 
   useEffect(() => {
-    if(machine) getRows();
+    if (machine) getRows();
   }, [machine]);
 
   const statuses = {
@@ -48,15 +50,15 @@ const ServicesTable = ({machine, refresh}) => {
     },
     STOPPED: {
       color: 'warning',
-      order: 2,
+      order: 2
     },
     FATAL: {
       color: 'error',
-      order: 1,
+      order: 1
     },
     STARTING: {
       color: 'info',
-      order: 3,
+      order: 3
     }
   };
 
@@ -71,8 +73,8 @@ const ServicesTable = ({machine, refresh}) => {
   };
 
   useEffect(() => {
-    getRows()
-  }, [refresh])
+    getRows();
+  }, [refresh]);
 
   // const rows = [
   //   createData('RUNNING', 'node.js', new Date()),
@@ -87,8 +89,11 @@ const ServicesTable = ({machine, refresh}) => {
   // ];
 
   return (
-    <div style={{height: '100%', overflow: 'auto', position: 'relative'}}>
-      <Table stickyHeader sx={{position: 'absolute', top: 0, left: 0, width: '100%'}}>
+    <div style={{ height: '100%', overflow: 'auto', position: 'relative' }}>
+      <Table
+        stickyHeader
+        sx={{ position: 'absolute', top: 0, left: 0, width: '100%' }}
+      >
         <TableHead>
           {columns.map((column) => (
             <TableCell key={column.id} align={column.align}>
@@ -96,21 +101,25 @@ const ServicesTable = ({machine, refresh}) => {
             </TableCell>
           ))}
         </TableHead>
-        {(!loading && rows.length > 0) && <TableBody>
-          {rows.map((row) => (
-            <TableRow>
-              <TableCell>
-                <Chip color={statuses[row._value].color} label={row._value} />
-              </TableCell>
-              <TableCell>{row._field}</TableCell>
-              <TableCell>
-                {new Date(row._time).toLocaleString()}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>}
+        {!loading && rows.length > 0 && (
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow>
+                <TableCell>
+                  <Chip color={statuses[row._value].color} label={row._value} />
+                </TableCell>
+                <TableCell>{row._field}</TableCell>
+                <TableCell>{new Date(row._time).toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        )}
       </Table>
-      {(!loading && rows.length === 0) && <div style={{marginTop: '15px', textAlign: 'center'}}>No Services</div>}
+      {!loading && rows.length === 0 && (
+        <div style={{ marginTop: '15px', textAlign: 'center' }}>
+          No Services
+        </div>
+      )}
     </div>
   );
 };

@@ -7,8 +7,7 @@ function Charts({ machine, refresh }) {
   const chartsArr = ['CPU_Usage', 'Memory_Usage', 'Disk_Usage'];
   const queryApi = new InfluxDB({
     url: 'http://localhost:8086',
-    token:
-      '0O_ouBs_TsOOcEuqxNtbrMhdNuQkrPM27Nga-ks1wcaSQnaob-fm4_CGOmYijhkHKR0h_jD5E4MW-qisrdK4kw=='
+    token: process.env.REACT_APP_INFLUX_TOKEN
   }).getQueryApi('pramana');
   const getTime = () => {
     const now = moment();
