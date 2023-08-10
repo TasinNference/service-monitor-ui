@@ -12,19 +12,24 @@ import { rootPath } from '../../configs/routesConfig';
 import _ from 'lodash';
 import { routes } from '../../utils/routesHelper';
 import moment from 'moment';
-import {useInterval} from "../../hooks/useInterval"
+import { useInterval } from '../../hooks/useInterval';
+import Charts from '../../components/Charts';
 
 const Iframe = (props) => {
   return (
     <div>
-      <iframe {...props} style={{ border: 0, display: 'block', width: '100%' }} title="graph" />
+      <iframe
+        {...props}
+        style={{ border: 0, display: 'block', width: '100%' }}
+        title="graph"
+      />
     </div>
   );
 };
 
 const Statistics = () => {
   const [now, setNow] = useState(moment());
-  const [past, setPast] = useState(now.clone().subtract(30, 'm'))
+  const [past, setPast] = useState(now.clone().subtract(30, 'm'));
   const location = useLocation();
   const panelRef = useRef(null);
   const [panelHeight, setPanelHeight] = useState(null);
@@ -32,7 +37,7 @@ const Statistics = () => {
   const [showTable, setShowTable] = useState(true);
   const [showGraphs, setShowGraphs] = useState(true);
   const [layout, setLayout] = useState('horizontal');
-  const [machine, setMachine] = useState({})
+  const [machine, setMachine] = useState({});
   const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
@@ -56,13 +61,13 @@ const Statistics = () => {
   };
 
   useInterval(() => {
-    setRefresh(refresh+1)
-    setNow(moment())
-  }, [15000])
+    setRefresh(refresh + 1);
+    setNow(moment());
+  }, [15000]);
 
   useEffect(() => {
-    setPast(now.clone().subtract(30, 'm'))
-  }, [now])
+    setPast(now.clone().subtract(30, 'm'));
+  }, [now]);
 
   useEffect(() => {
     const allPaths = location.pathname.replace(rootPath + '/', '').split('/');
@@ -86,7 +91,9 @@ const Statistics = () => {
     }
 
     setDirectories(tempDir);
-    setMachine(_.get(routes, allPaths.join('.children.')))
+    const tempMachine = _.get(routes, allPaths.join('.children.'));
+    console.log(tempMachine, 'temp machine');
+    setMachine(tempMachine);
   }, [location.pathname]);
 
   return (
@@ -118,11 +125,6 @@ const Statistics = () => {
             <Tooltip title={`${showGraphs ? 'Hide' : 'Show'} Graphs`}>
               <IconButton onClick={toggleGraphs}>
                 <TimelineIcon color={showGraphs ? 'info' : 'inherit'} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Toggle Layout">
-              <IconButton onClick={toggleLayout}>
-                <DashboardIcon />
               </IconButton>
             </Tooltip>
           </div>
@@ -161,10 +163,13 @@ const Statistics = () => {
                       height: '100%',
                       flexGrow: 1,
                       overflow: 'auto',
-                      border: '1px solid rgb(50,50,50)',
+                      border: '1px solid rgb(50,50,50)'
                     }}
                   >
-                    <ServicesTable refresh={refresh} machine={machine.machine_name} />
+                    <ServicesTable
+                      refresh={refresh}
+                      machine={machine.machine_name}
+                    />
                   </Card>
                 </Panel>
               </>
@@ -188,22 +193,14 @@ const Statistics = () => {
                       flexGrow: 1,
                       display: 'grid',
                       overflow: 'auto',
+                      padding: '25px',
+                      rowGap: '25px',
                       [panelHeight > 300
                         ? 'gridTemplateRows'
                         : 'gridTemplateColumns']: '1fr 1fr 1fr'
                     }}
                   >
-                    {[...Array(3).keys()].map((item, index) => {
-                      return (
-                      <Iframe
-                        id="cr-embed-16000US5367000-demographics-age-distribution_by_decade-total"
-                        class="census-reporter-embed"
-                        src={`http://localhost:3000/d-solo/${machine.dashboard}/${machine.machine_name?.toLowerCase()}-resources?orgId=1&refresh=5s&from=${past.valueOf()}&to=${now.valueOf()}&panelId=${index+1}`}
-                        frameBorder="0"
-                        width="100%"
-                        height="100%"
-                      ></Iframe>
-                    )})}
+                    <Charts refresh={refresh} machine={machine} />
                   </Card>
                 </Panel>
               </>
