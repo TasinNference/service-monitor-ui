@@ -7,15 +7,11 @@ import {
   TableHead,
   TableRow
 } from '@mui/material';
-import { InfluxDB, FluxTableMetaData } from '@influxdata/influxdb-client';
 import { useEffect, useState } from 'react';
+import queryApi from '../../configs/queryApi';
 
 const ServicesTable = ({ machine, refresh }) => {
   const [loading, setLoading] = useState(true);
-  const queryApi = new InfluxDB({
-    url: 'http://localhost:8086',
-    token: process.env.REACT_APP_INFLUX_TOKEN
-  }).getQueryApi('pramana');
   const fluxQuery = `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
   const [rows, setRows] = useState([]);
   async function getRows() {
@@ -39,9 +35,9 @@ const ServicesTable = ({ machine, refresh }) => {
     setLoading(false);
   }
 
-  useEffect(() => {
-    if (machine) getRows();
-  }, [machine]);
+  // useEffect(() => {
+  //   if (machine) getRows();
+  // }, [machine]);
 
   const statuses = {
     RUNNING: {
@@ -72,9 +68,9 @@ const ServicesTable = ({ machine, refresh }) => {
     return { status, name, lastUpdated };
   };
 
-  useEffect(() => {
-    getRows();
-  }, [refresh]);
+  // useEffect(() => {
+  //   getRows();
+  // }, [refresh]);
 
   // const rows = [
   //   createData('RUNNING', 'node.js', new Date()),

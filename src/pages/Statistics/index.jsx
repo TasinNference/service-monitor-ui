@@ -2,11 +2,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import ServicesTable from '../ServicesTable';
 import ResizeHandle from '../../components/ResizeHandle';
 import { Panel, PanelGroup } from 'react-resizable-panels';
-import { Card, IconButton, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  Divider,
+  IconButton,
+  Tooltip,
+  Typography
+} from '@mui/material';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import TimelineIcon from '@mui/icons-material/Timeline';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import { useLocation } from 'react-router-dom';
 import { rootPath } from '../../configs/routesConfig';
 import _ from 'lodash';
@@ -14,18 +20,46 @@ import { routes } from '../../utils/routesHelper';
 import moment from 'moment';
 import { useInterval } from '../../hooks/useInterval';
 import Charts from '../../components/Charts';
+import { DatePicker, DateTimeField, DateTimePicker } from '@mui/x-date-pickers';
 
-const Iframe = (props) => {
+function ButtonField(props) {
+  const {
+    setOpen,
+    label,
+    id,
+    disabled,
+    InputProps: { ref } = {},
+    inputProps: { 'aria-label': ariaLabel } = {}
+  } = props;
+
   return (
-    <div>
-      <iframe
-        {...props}
-        style={{ border: 0, display: 'block', width: '100%' }}
-        title="graph"
-      />
-    </div>
+    <Button
+      variant="outlined"
+      id={id}
+      disabled={disabled}
+      ref={ref}
+      aria-label={ariaLabel}
+      onClick={() => setOpen?.((prev) => !prev)}
+    >
+      {label ?? 'Pick a date'}
+    </Button>
   );
-};
+}
+
+function ButtonDatePicker(props) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <DatePicker
+      slots={{ field: ButtonField, ...props.slots }}
+      slotProps={{ field: { setOpen } }}
+      {...props}
+      open={open}
+      onClose={() => setOpen(false)}
+      onOpen={() => setOpen(true)}
+    />
+  );
+}
 
 const Statistics = () => {
   const [now, setNow] = useState(moment());
@@ -179,29 +213,19 @@ const Statistics = () => {
               <>
                 <Panel
                   order={2}
-                  minSize={30}
+                  minSize={40}
                   onResize={() => setPanelHeight(panelRef.current.clientHeight)}
                   style={{
                     display: 'flex',
                     flexDirection: 'column'
                   }}
                 >
-                  <Card
-                    ref={panelRef}
-                    sx={{
-                      height: '100%',
-                      flexGrow: 1,
-                      display: 'grid',
-                      overflow: 'auto',
-                      padding: '25px',
-                      rowGap: '25px',
-                      [panelHeight > 300
-                        ? 'gridTemplateRows'
-                        : 'gridTemplateColumns']: '1fr 1fr 1fr'
-                    }}
-                  >
-                    <Charts refresh={refresh} machine={machine} />
-                  </Card>
+                  <Charts
+                    refresh={refresh}
+                    machine={machine}
+                    panelRef={panelRef}
+                    panelHeight={panelHeight}
+                  />
                 </Panel>
               </>
             )}

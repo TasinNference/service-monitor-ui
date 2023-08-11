@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import 'chartjs-adapter-moment';
-import { Line } from 'react-chartjs-2';
+import { Line, getDatasetAtEvent, getElementAtEvent } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,11 +22,19 @@ ChartJS.register(
   TimeScale
 );
 
-const Graph = ({ data, title }) => {
+const Graph = ({ data, title, setOpenDialog }) => {
+  const chartRef = useRef();
+  const onClick = (e) => {
+    const element = getElementAtEvent(chartRef.current, e);
+    if (!element.length) return;
+
+    const { datasetIndex, index } = element[0];
+
+    console.log(data.datasets[datasetIndex].data[index].x);
+    setOpenDialog(data.datasets[datasetIndex].data[index].x);
+  };
+
   const options = {
-    onClick: (e, element) => {
-      console.log(e, element);
-    },
     plugins: {
       title: {
         display: true,
@@ -78,7 +86,7 @@ const Graph = ({ data, title }) => {
   return (
     <div className="Graph">
       <div>
-        <Line options={options} data={data} />
+        <Line ref={chartRef} options={options} data={data} onClick={onClick} />
       </div>
     </div>
   );
