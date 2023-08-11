@@ -2,21 +2,63 @@ import { InfluxDB } from '@influxdata/influxdb-client';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import Graph from '../Graph';
+import {
+  Box,
+  Card,
+  Dialog,
+  Divider,
+  IconButton,
+  InputAdornment,
+  TextField
+} from '@mui/material';
+import { DateTimeField, DateTimePicker } from '@mui/x-date-pickers';
+import { clone } from 'lodash';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import HistoryIcon from '@mui/icons-material/History';
+import queryApi from '../../configs/queryApi';
 
-function Charts({ machine, refresh }) {
+function Charts({ machine, refresh, panelRef, panelHeight }) {
   const chartsArr = ['CPU_Usage', 'Memory_Usage', 'Disk_Usage'];
-  const queryApi = new InfluxDB({
-    url: 'http://localhost:8086',
-    token: process.env.REACT_APP_INFLUX_TOKEN
-  }).getQueryApi('pramana');
-  const getTime = () => {
-    const now = moment();
-    const past = now.clone().subtract(5, 'm');
+  const getTime = (setPast, setNow) => {
+    const now = setNow || moment();
+    const past = setPast || now.clone().subtract(5, 'm');
     return [past, now];
   };
 
   const [timeRange, setTimeRange] = useState(getTime());
-  const [chartData, setChartData] = useState(null);
+  const [stopRefresh, setStopRefresh] = useState(false);
+  const [openPicker, setOpenPicker] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const tempSetData = () => {
+    return [...Array(3).keys()].map(() => ({
+      datasets: [
+        {
+          data: [...Array(5).keys()].map((num) => ({
+            x: timeRange[0].clone().add(num, 'm'),
+            y: num * 10
+          })),
+          pointRadius: 0,
+          borderColor: '#73bf69'
+        }
+      ]
+    }));
+  };
+  const [chartData, setChartData] = useState(
+    [...Array(3).keys()].map(() => ({
+      datasets: [
+        {
+          data: [...Array(timeRange[1].diff(timeRange[0], 'm')).keys()].map(
+            (num) => ({
+              x: timeRange[0].clone().add(num, 'm'),
+              y: num * 10
+            })
+          ),
+          pointRadius: 0,
+          borderColor: '#73bf69'
+        }
+      ]
+    }))
+  );
 
   const getGraphData = () => {
     const range = getTime();
@@ -63,22 +105,108 @@ function Charts({ machine, refresh }) {
   };
 
   useEffect(() => {
-    getGraphData();
+    if (!stopRefresh) {
+      // getGraphData();
+      const range = getTime();
+      setTimeRange(range);
+    }
   }, [refresh]);
 
   useEffect(() => {
-    getGraphData();
+    console.log('time change');
+    setChartData(tempSetData());
+  }, [timeRange]);
+
+  useEffect(() => {
+    // getGraphData();
+    const range = getTime();
+    setTimeRange(range);
   }, [machine.machine_name]);
 
+  const resetTime = () => {
+    const range = getTime();
+    setTimeRange(range);
+    setStopRefresh(false);
+  };
+
+  const onTimeChange = (newVal, { validationError }) => {
+    if (!validationError) {
+      setTimeRange(getTime(newVal, newVal.clone().add(5, 'm')));
+      setStopRefresh(true);
+    }
+  };
+
   return (
-    <>
-      {machine &&
-        chartsArr.map((item, index) => (
-          <div style={{ position: 'relative', width: '100%' }}>
-            {chartData && <Graph data={chartData[index]} title={item} />}
-          </div>
-        ))}
-    </>
+    <Card
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%'
+      }}
+    >
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        {openDialog && openDialog.format('L')}
+      </Dialog>
+      <Box
+        sx={{
+          padding: '15px 25px',
+          display: 'flex'
+        }}
+      >
+        <DateTimePicker
+          open={openPicker}
+          onClose={() => setOpenPicker(false)}
+          sx={{ flexGrow: 1 }}
+          label="Start Time"
+          defaultValue={timeRange[0]}
+          maxDateTime={timeRange[1].clone().subtract(5, 'm')}
+          onChange={onTimeChange}
+          formatDensity="spacious"
+          value={timeRange[0]}
+          slotProps={{
+            textField: {
+              InputProps: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={resetTime}>
+                      <HistoryIcon />
+                    </IconButton>
+                    <IconButton onClick={() => setOpenPicker(true)}>
+                      <CalendarMonthIcon />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }
+            }
+          }}
+        />
+      </Box>
+      <Box
+        ref={panelRef}
+        sx={{
+          flexGrow: 1,
+          display: 'grid',
+          overflow: 'auto',
+          padding: '25px',
+          rowGap: '25px',
+          [panelHeight > 300 ? 'gridTemplateRows' : 'gridTemplateColumns']:
+            '1fr 1fr 1fr'
+        }}
+      >
+        {machine &&
+          chartsArr.map((item, index) => (
+            <div style={{ position: 'relative', width: '100%' }}>
+              {chartData && (
+                <Graph
+                  setOpenDialog={setOpenDialog}
+                  data={chartData[index]}
+                  title={item}
+                />
+              )}
+            </div>
+          ))}
+      </Box>
+    </Card>
   );
 }
 

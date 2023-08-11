@@ -5,6 +5,8 @@ import App from './App';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import './utils/routesHelper';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs, AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 
 const darkTheme = createTheme({
   palette: {
@@ -18,7 +20,9 @@ root.render(
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <Router>
-        <App />
+        <LocalizationProvider dateAdapter={AdapterMoment}>
+          <App />
+        </LocalizationProvider>
       </Router>
     </ThemeProvider>
   </React.StrictMode>
