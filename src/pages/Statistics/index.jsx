@@ -71,7 +71,7 @@ const Statistics = () => {
   const [showTable, setShowTable] = useState(true);
   const [showGraphs, setShowGraphs] = useState(true);
   const [layout, setLayout] = useState('horizontal');
-  const [machine, setMachine] = useState({});
+  const [machine, setMachine] = useState(null);
   const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
@@ -202,7 +202,7 @@ const Statistics = () => {
                   >
                     <ServicesTable
                       refresh={refresh}
-                      machine={machine.machine_name}
+                      machine={machine?.machine_name}
                     />
                   </Card>
                 </Panel>

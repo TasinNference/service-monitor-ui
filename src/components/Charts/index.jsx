@@ -16,6 +16,7 @@ import { clone } from 'lodash';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import HistoryIcon from '@mui/icons-material/History';
 import queryApi from '../../configs/queryApi';
+import ProcessGraphs from '../ProcessGraphs';
 
 function Charts({ machine, refresh, panelRef, panelHeight }) {
   const chartsArr = ['CPU_Usage', 'Memory_Usage', 'Disk_Usage'];
@@ -29,20 +30,6 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
   const [stopRefresh, setStopRefresh] = useState(false);
   const [openPicker, setOpenPicker] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const tempSetData = () => {
-    return [...Array(3).keys()].map(() => ({
-      datasets: [
-        {
-          data: [...Array(5).keys()].map((num) => ({
-            x: timeRange[0].clone().add(num, 'm'),
-            y: num * 10
-          })),
-          pointRadius: 0,
-          borderColor: '#73bf69'
-        }
-      ]
-    }));
-  };
   const [chartData, setChartData] = useState(
     [...Array(3).keys()].map(() => ({
       datasets: [
@@ -60,8 +47,7 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
     }))
   );
 
-  const getGraphData = () => {
-    const range = getTime();
+  const getGraphData = (custom) => {
     const pastDiff = timeRange[0].diff(moment(), 'minutes');
     const nowDiff = timeRange[1].diff(moment(), 'minutes');
     const queries = chartsArr.map(async (item) => {
@@ -72,7 +58,7 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
               nowDiff === 0 ? 'now()' : `${nowDiff}m`
             })
             |> filter(fn: (r) => r._measurement == "resources" and r._field == "${item}" and r.machine_name == "${
-              machine.machine_name
+              machine?.machine_name
             }")`
       )) {
         const o = tableMeta.toObject(values);
@@ -83,7 +69,7 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
 
     const formatData = (arr) => {
       return arr.map((item) => ({
-        x: new Date(item._time),
+        x: moment(item._time),
         y: item._value
       }));
     };
@@ -101,27 +87,23 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
     };
 
     getData();
+    const range = custom ? timeRange : getTime();
     setTimeRange(range);
   };
 
   useEffect(() => {
     if (!stopRefresh) {
-      // getGraphData();
-      const range = getTime();
-      setTimeRange(range);
+      getGraphData();
     }
   }, [refresh]);
 
   useEffect(() => {
-    console.log('time change');
-    setChartData(tempSetData());
+    getGraphData(true);
   }, [timeRange]);
 
   useEffect(() => {
-    // getGraphData();
-    const range = getTime();
-    setTimeRange(range);
-  }, [machine.machine_name]);
+    if (machine) getGraphData();
+  }, [machine]);
 
   const resetTime = () => {
     const range = getTime();
@@ -136,6 +118,8 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
     }
   };
 
+  console.log(openDialog, 'open dialog');
+
   return (
     <Card
       sx={{
@@ -145,7 +129,9 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
       }}
     >
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        {openDialog && openDialog.format('L')}
+        {openDialog && (
+          <ProcessGraphs dateTime={openDialog} machine={machine} />
+        )}
       </Dialog>
       <Box
         sx={{
@@ -159,7 +145,7 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
           sx={{ flexGrow: 1 }}
           label="Start Time"
           defaultValue={timeRange[0]}
-          maxDateTime={timeRange[1].clone().subtract(5, 'm')}
+          disableFuture
           onChange={onTimeChange}
           formatDensity="spacious"
           value={timeRange[0]}

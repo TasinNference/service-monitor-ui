@@ -30,7 +30,7 @@ const Graph = ({ data, title, setOpenDialog }) => {
 
     const { datasetIndex, index } = element[0];
 
-    console.log(data.datasets[datasetIndex].data[index].x);
+    console.log(data.datasets[datasetIndex].data[index], 'test');
     setOpenDialog(data.datasets[datasetIndex].data[index].x);
   };
 

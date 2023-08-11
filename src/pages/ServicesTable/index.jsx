@@ -12,9 +12,9 @@ import queryApi from '../../configs/queryApi';
 
 const ServicesTable = ({ machine, refresh }) => {
   const [loading, setLoading] = useState(true);
-  const fluxQuery = `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
   const [rows, setRows] = useState([]);
   async function getRows() {
+    const fluxQuery = `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
     const rowsArr = {};
     for await (const { values, tableMeta } of queryApi.iterateRows(fluxQuery)) {
       // the following line creates an object for each row
@@ -35,9 +35,10 @@ const ServicesTable = ({ machine, refresh }) => {
     setLoading(false);
   }
 
-  // useEffect(() => {
-  //   if (machine) getRows();
-  // }, [machine]);
+  useEffect(() => {
+    console.log('machine machine', machine);
+    if (machine) getRows();
+  }, [machine]);
 
   const statuses = {
     RUNNING: {
@@ -68,9 +69,9 @@ const ServicesTable = ({ machine, refresh }) => {
     return { status, name, lastUpdated };
   };
 
-  // useEffect(() => {
-  //   getRows();
-  // }, [refresh]);
+  useEffect(() => {
+    getRows();
+  }, [refresh]);
 
   // const rows = [
   //   createData('RUNNING', 'node.js', new Date()),
