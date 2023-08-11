@@ -16,7 +16,7 @@ const ServicesTable = ({ machine, refresh }) => {
     url: 'http://localhost:8086',
     token: process.env.REACT_APP_INFLUX_TOKEN
   }).getQueryApi('pramana');
-  const fluxQuery = `from(bucket:"metrics") |> range(start: -1s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
+  const fluxQuery = `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
   const [rows, setRows] = useState([]);
   async function getRows() {
     const rowsArr = {};
