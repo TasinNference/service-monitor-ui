@@ -48,47 +48,49 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
   );
 
   const getGraphData = (custom) => {
-    const pastDiff = timeRange[0].diff(moment(), 'minutes');
-    const nowDiff = timeRange[1].diff(moment(), 'minutes');
-    const queries = chartsArr.map(async (item) => {
-      const rowsArr = [];
-      for await (const { values, tableMeta } of queryApi.iterateRows(
-        `from(bucket: "metrics")
-            |> range(start: ${pastDiff}m, stop: ${
-              nowDiff === 0 ? 'now()' : `${nowDiff}m`
-            })
-            |> filter(fn: (r) => r._measurement == "resources" and r._field == "${item}" and r.machine_name == "${
-              machine?.machine_name
-            }")`
-      )) {
-        const o = tableMeta.toObject(values);
-        rowsArr.push(o);
-      }
-      return rowsArr;
-    });
-
-    const formatData = (arr) => {
-      return arr.map((item) => ({
-        x: moment(item._time),
-        y: item._value
-      }));
-    };
-
-    const getData = async () => {
-      const data = await Promise.all(queries);
-      console.log(data, 'data data');
-      setChartData(
-        data.map((item) => ({
-          datasets: [
-            { data: formatData(item), pointRadius: 0, borderColor: '#73bf69' }
-          ]
-        }))
-      );
-    };
-
-    getData();
     const range = custom ? timeRange : getTime();
     setTimeRange(range);
+    // const pastDiff = timeRange[0].diff(moment(), 'minutes');
+    // const nowDiff = timeRange[1].diff(moment(), 'minutes');
+    // const queries = chartsArr.map(async (item) => {
+    //   const rowsArr = [];
+    //   for await (const { values, tableMeta } of queryApi.iterateRows(
+    //     `from(bucket: "metrics")
+    //         |> range(start: ${pastDiff}m, stop: ${
+    //           nowDiff === 0 ? 'now()' : `${nowDiff}m`
+    //         })
+    //         |> filter(fn: (r) => r._measurement == "resources" and r._field == "${item}" and r.machine_name == "${
+    //           machine?.machine_name
+    //         }")`
+    //   )) {
+    //     const o = tableMeta.toObject(values);
+    //     rowsArr.push(o);
+    //   }
+    //   return rowsArr;
+    // });
+
+    // const formatData = (arr) => {
+    //   return arr.map((item) => ({
+    //     x: moment(item._time),
+    //     y: item._value
+    //   }));
+    // };
+
+    // const getData = async () => {
+    //   const data = await Promise.all(queries);
+    //   console.log(data, 'data data');
+    //   setChartData(
+    //     data.map((item) => ({
+    //       datasets: [
+    //         { data: formatData(item), pointRadius: 0, borderColor: '#73bf69' }
+    //       ]
+    //     }))
+    //   );
+    // };
+
+    // getData();
+    // const range = custom ? timeRange : getTime();
+    // setTimeRange(range);
   };
 
   useEffect(() => {
@@ -133,6 +135,7 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
         maxWidth="sm"
         open={openDialog}
         onClose={() => setOpenDialog(false)}
+        sx={{ overflow: 'auto' }}
       >
         <Box sx={{ width: '100%' }}>
           {openDialog && (

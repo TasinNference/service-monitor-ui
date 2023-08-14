@@ -14,24 +14,25 @@ const ServicesTable = ({ machine, refresh }) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   async function getRows() {
-    const fluxQuery = `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
-    const rowsArr = {};
-    for await (const { values, tableMeta } of queryApi.iterateRows(fluxQuery)) {
-      // the following line creates an object for each row
-      const o = tableMeta.toObject(values);
-      // console.log(JSON.stringify(o, null, 2))
-      rowsArr[o._field] = o;
+    // const fluxQuery = `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
+    // const rowsArr = {};
+    // for await (const { values, tableMeta } of queryApi.iterateRows(fluxQuery)) {
+    //   // the following line creates an object for each row
+    //   const o = tableMeta.toObject(values);
+    //   // console.log(JSON.stringify(o, null, 2))
+    //   rowsArr[o._field] = o;
 
-      // alternatively, you can get only a specific column value without
-      // the need to create an object for every row
-      // console.log(tableMeta.get(row, '_time'))
-    }
-    console.log(rowsArr, 'rows');
-    setRows(
-      Object.values(rowsArr).sort(
-        (a, b) => statuses[a._value].order - statuses[b._value].order
-      )
-    );
+    //   // alternatively, you can get only a specific column value without
+    //   // the need to create an object for every row
+    //   // console.log(tableMeta.get(row, '_time'))
+    // }
+    // console.log(rowsArr, 'rows');
+    // setRows(
+    //   Object.values(rowsArr).sort(
+    //     (a, b) => statuses[a._value].order - statuses[b._value].order
+    //   )
+    // );
+    setRows({});
     setLoading(false);
   }
 
