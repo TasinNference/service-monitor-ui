@@ -1,6 +1,45 @@
 import moment from 'moment';
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import queryApi from '../../configs/queryApi';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
+
+const options = {
+  responsive: true,
+  maintainAspectRatio: true,
+  aspectRatio: 1.6,
+  indexAxis: 'y',
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        display: false
+      },
+      grid: {
+        display: false,
+        drawBorder: false
+      }
+    },
+    x: {
+      grid: {
+        display: false,
+        drawBorder: false
+      },
+      ticks: {
+        display: false
+      }
+    }
+  }
+};
 
 const ProcessGraphs = memo(({ dateTime, machine }) => {
   const chartsArr = ['proc_by_cpu_percent', 'proc_by_memory_percent'];
@@ -11,7 +50,9 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
     const rowsArr = [];
     for await (const { values, tableMeta } of queryApi.iterateRows(
       `from(bucket:"metrics")
-      |> range(start: ${diff - 5}m, stop: ${diff !== 0 ? `${diff}m` : 'now()'}) 
+      |> range(start: ${diff !== 0 ? `${diff * 60}s` : '-15s'}, stop: ${
+        diff !== 0 ? `${diff * 60 + 15}s` : 'now()'
+      }) 
       |> filter(fn: (r) => r._measurement == "${item}" and r.machine_name == "${
         machine.machine_name
       }")`
@@ -25,22 +66,33 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
   const getData = async () => {
     const data = await Promise.all(queries);
     console.log(data, 'data data');
-    // setChartData(
-    //   data.map((item) => ({
-    //     datasets: [
-    //       { data: formatData(item), pointRadius: 0, borderColor: '#73bf69' }
-    //     ]
-    //   }))
-    // );
+    setChartData(
+      data?.map((item) => ({
+        labels: item.map((p) => p._field),
+        datasets: [
+          {
+            barPercentage: 0.7,
+            // categoryPercentage: 1,
+            data: item.map((p) => p._value)
+          }
+        ]
+      }))
+    );
   };
 
   useEffect(() => {
-    // getData();
+    console.log(chartData, 'chart data');
+  }, [chartData]);
+
+  useEffect(() => {
+    getData();
   }, [dateTime]);
 
   console.log('process queries', queries);
 
-  return <div>ProcessGraph</div>;
+  return (
+    <div>{chartData && <Bar options={options} data={chartData[0]} />}</div>
+  );
 });
 
 export default ProcessGraphs;

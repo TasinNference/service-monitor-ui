@@ -128,10 +128,17 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
         height: '100%'
       }}
     >
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        {openDialog && (
-          <ProcessGraphs dateTime={openDialog} machine={machine} />
-        )}
+      <Dialog
+        fullWidth
+        maxWidth="sm"
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      >
+        <Box sx={{ width: '100%' }}>
+          {openDialog && (
+            <ProcessGraphs dateTime={openDialog} machine={machine} />
+          )}
+        </Box>
       </Dialog>
       <Box
         sx={{
