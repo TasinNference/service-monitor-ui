@@ -100,12 +100,12 @@ const BarGraph = ({ data, title }) => {
 
         ctx.fillStyle = 'red';
         ctx.font = 'bolder 12px Arial';
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
         ctx.fillText(
           data.labels[index],
           left,
-          y.getPixelForValue(index) + barThickness / 2
+          y.getPixelForValue(index) - barThickness / 2 - 10
         );
 
         ctx.fillStyle = 'red';

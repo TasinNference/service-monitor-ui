@@ -23,7 +23,7 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
         {
           barPercentage: 0.5,
           categoryPercentage: 1,
-          data: [30, 50, 10, 30, 50, 10, 30, 50, 10, 30, 50, 10],
+          data: [30, 50],
           backgroundColor: '#57c05e'
         }
       ]
