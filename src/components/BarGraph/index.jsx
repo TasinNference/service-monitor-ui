@@ -11,7 +11,7 @@ const horizontalBarTrack = {
       scales: { x, y }
     } = chart;
 
-    const barThickness = chart.getDatasetMeta(0).data[0].height;
+    const barThickness = chart.getDatasetMeta(0).data[0]?.height;
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.1)';
     data.datasets[0].data.forEach((dataPoint, index) => {
@@ -25,12 +25,11 @@ const horizontalBarTrack = {
   }
 };
 
-const BarGraph = ({ data, title, rightPadding, setRightPadding }) => {
+const BarGraph = ({ data, title, rightPadding, setRightPadding, maxVal }) => {
   const rightPaddingRef = useRef(0);
 
   useEffect(() => {
     rightPaddingRef.current = rightPadding;
-    console.log(rightPadding);
   }, [rightPadding]);
 
   const options = {
@@ -56,6 +55,7 @@ const BarGraph = ({ data, title, rightPadding, setRightPadding }) => {
         }
       },
       x: {
+        max: maxVal,
         border: {
           display: false
         },
@@ -75,7 +75,10 @@ const BarGraph = ({ data, title, rightPadding, setRightPadding }) => {
       title: {
         display: true,
         text: title,
-        color: '#ccccdc'
+        color: '#ccccdc',
+        font: {
+          size: 14
+        }
       }
     }
   };
@@ -104,7 +107,7 @@ const BarGraph = ({ data, title, rightPadding, setRightPadding }) => {
         ctx.fillText(
           data.labels[index],
           left,
-          y.getPixelForValue(index) - barThickness / 2 - 2
+          y.getPixelForValue(index) - barThickness / 2 - 5
         );
 
         ctx.fillStyle = '#57c05e';
@@ -125,7 +128,7 @@ const BarGraph = ({ data, title, rightPadding, setRightPadding }) => {
       style={{
         position: 'relative',
         width: '100%',
-        height: `${data.datasets[0].data.length * 60}px`
+        height: `${data.datasets[0].data.length * 50}px`
       }}
     >
       <Bar

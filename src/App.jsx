@@ -153,13 +153,7 @@ const Tree = () => {
   );
 };
 
-const Test = () => {
-  console.log('test');
-  return <div>test</div>;
-};
-
 function App() {
-  console.log('app reload');
   return (
     <div className="App">
       <div style={{ display: 'flex' }}>
@@ -188,12 +182,12 @@ function App() {
           }}
         >
           <Routes>
-              {routePaths.map((path, index) => (
-                <Route
-                  path={rootPath + path}
-                  element={<Statistics key={index} />}
-                />
-              ))}
+            {routePaths.map((path, index) => (
+              <Route
+                path={rootPath + path}
+                element={<Statistics key={index} />}
+              />
+            ))}
             <Route path="*" element={<Error />} />
           </Routes>
         </div>

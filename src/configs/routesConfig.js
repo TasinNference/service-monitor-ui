@@ -17,6 +17,11 @@ const routes = {
               label: 'Scanner 1',
               machine_name: 'S1',
               dashboard: 'a94fd44b-6111-4881-b6a4-c3d014507a7b'
+            },
+            scanner4: {
+              label: 'Scanner 4',
+              machine_name: 'S4',
+              dashboard: 'a94fd44b-6111-4881-b6a4-c3d014507a7b'
             }
           }
         }
@@ -34,22 +39,12 @@ const routes = {
           children: {
             cops: {
               label: 'COPS',
-              machine_name: 'PC',
+              machine_name: 'CS001',
               dashboard: 'd2c31728-2ae1-48b7-b586-9236c3353757'
             },
             scanner1: {
               label: 'Scanner 1',
-              machine_name: 'PCS1',
-              dashboard: 'a94fd44b-6111-4881-b6a4-c3d014507a7b'
-            },
-            scanner3: {
-              label: 'Scanner 3',
-              machine_name: 'PCS3',
-              dashboard: 'a94fd44b-6111-4881-b6a4-c3d014507a7b'
-            },
-            scanner4: {
-              label: 'Scanner 4',
-              machine_name: 'PCS4',
+              machine_name: 'C1S1',
               dashboard: 'a94fd44b-6111-4881-b6a4-c3d014507a7b'
             }
           }

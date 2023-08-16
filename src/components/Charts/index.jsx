@@ -9,7 +9,8 @@ import {
   Divider,
   IconButton,
   InputAdornment,
-  TextField
+  TextField,
+  Tooltip
 } from '@mui/material';
 import { DateTimeField, DateTimePicker } from '@mui/x-date-pickers';
 import { clone } from 'lodash';
@@ -62,7 +63,6 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
 
     const getData = async () => {
       const data = await Promise.all(queries);
-      console.log(data, 'data data');
       setChartData(
         data.map((item) => ({
           datasets: [
@@ -105,11 +105,7 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
     }
   };
 
-  console.log(openDialog, 'open dialog');
-
-  useEffect(() => {
-    console.log(machine, !loading, chartData[0], 'graph');
-  }, [machine, loading, chartData]);
+  useEffect(() => {}, [machine, loading, chartData]);
 
   return (
     <Card
@@ -154,12 +150,16 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
               InputProps: {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={resetTime}>
-                      <HistoryIcon />
-                    </IconButton>
-                    <IconButton onClick={() => setOpenPicker(true)}>
-                      <CalendarMonthIcon />
-                    </IconButton>
+                    <Tooltip title="Reset Time">
+                      <IconButton onClick={resetTime}>
+                        <HistoryIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="DateTime Picker">
+                      <IconButton onClick={() => setOpenPicker(true)}>
+                        <CalendarMonthIcon />
+                      </IconButton>
+                    </Tooltip>
                   </InputAdornment>
                 )
               }

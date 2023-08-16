@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import queryApi from '../../configs/queryApi';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -11,10 +11,13 @@ import {
   Tooltip
 } from 'chart.js';
 import BarGraph from '../BarGraph';
+import { Divider } from '@mui/material';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
 
 const ProcessGraphs = memo(({ dateTime, machine }) => {
+  const [maxVal, setMaxVal] = useState(0);
+  const maxValRef = useRef(0);
   const [rightPadding, setRightPadding] = useState(0);
   const chartsArr = ['proc_by_cpu_percent', 'proc_by_memory_percent'];
   const [chartData, setChartData] = useState(null);
@@ -34,27 +37,28 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
       const o = tableMeta.toObject(values);
       rowsArr.push(o);
     }
-    console.log('query', rowsArr);
     return rowsArr;
   });
 
   const getData = async () => {
-    console.log('bar data', queries);
     const data = await Promise.all(queries);
-    console.log(data, 'data data');
     setChartData(
       data?.map((item) => ({
         labels: item.map((p) => p._field),
         datasets: [
           {
-            barPercentage: 0.5,
+            barPercentage: 0.3,
             categoryPercentage: 1,
             backgroundColor: '#57c05e',
-            data: item.map((p) => Math.round(p._value * 10) / 10)
+            data: item.map((p) => {
+              if (p._value > maxValRef.current) maxValRef.current = p._value;
+              return Math.round(p._value * 10) / 10;
+            })
           }
         ]
       }))
     );
+    setMaxVal(maxValRef.current);
   };
 
   useEffect(() => {
@@ -64,18 +68,24 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
   return (
     <div
       style={{
-        padding: '15px'
+        padding: '15px',
+        display: 'grid',
+        rowGap: '50px'
       }}
     >
       {chartsArr.map((item, index) => {
         return (
           chartData && (
-            <BarGraph
-              title={item}
-              data={chartData[index]}
-              rightPadding={rightPadding}
-              setRightPadding={setRightPadding}
-            />
+            <>
+              <BarGraph
+                title={item}
+                data={chartData[index]}
+                rightPadding={rightPadding}
+                setRightPadding={setRightPadding}
+                maxVal={maxVal}
+              />
+              {index === 0 && <Divider />}
+            </>
           )
         );
       })}

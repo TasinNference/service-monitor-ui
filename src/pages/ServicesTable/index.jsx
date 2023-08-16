@@ -14,6 +14,7 @@ const ServicesTable = ({ machine, refresh }) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   async function getRows() {
+    console.log('getRows');
     const fluxQuery = `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
     const rowsArr = {};
     for await (const { values, tableMeta } of queryApi.iterateRows(fluxQuery)) {
@@ -35,13 +36,9 @@ const ServicesTable = ({ machine, refresh }) => {
   }
 
   useEffect(() => {
-    console.log('machine machine', machine);
+    console.log('machine', machine);
     if (machine) getRows();
   }, [machine]);
-
-  useEffect(() => {
-    console.log(rows, loading, 'rowsss');
-  }, [rows]);
 
   const statuses = {
     RUNNING: {

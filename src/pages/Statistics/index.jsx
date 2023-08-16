@@ -126,7 +126,6 @@ const Statistics = () => {
 
     setDirectories(tempDir);
     const tempMachine = _.get(routes, allPaths.join('.children.'));
-    console.log(tempMachine, 'temp machine');
     setMachine(tempMachine);
   }, [location.pathname]);
 
