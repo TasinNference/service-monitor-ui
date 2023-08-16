@@ -214,7 +214,9 @@ const Statistics = () => {
                 <Panel
                   order={2}
                   minSize={40}
-                  onResize={() => setPanelHeight(panelRef.current.clientHeight)}
+                  onResize={() =>
+                    setPanelHeight(panelRef.current?.clientHeight)
+                  }
                   style={{
                     display: 'flex',
                     flexDirection: 'column'

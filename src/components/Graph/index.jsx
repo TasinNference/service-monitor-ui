@@ -49,7 +49,8 @@ const Graph = ({ data, title, setOpenDialog }) => {
     plugins: {
       title: {
         display: true,
-        text: title
+        text: title,
+        color: '#ccccdc'
       }
     },
     tooltips: {

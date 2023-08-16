@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 const horizontalBarTrack = {
   id: 'horizontalBarTrack',
@@ -26,8 +25,7 @@ const horizontalBarTrack = {
   }
 };
 
-const BarGraph = ({ data, title }) => {
-  const [rightPadding, setRightPadding] = useState(0);
+const BarGraph = ({ data, title, rightPadding, setRightPadding }) => {
   const rightPaddingRef = useRef(0);
 
   useEffect(() => {
@@ -76,7 +74,8 @@ const BarGraph = ({ data, title }) => {
       },
       title: {
         display: true,
-        text: title
+        text: title,
+        color: '#ccccdc'
       }
     }
   };
@@ -98,18 +97,18 @@ const BarGraph = ({ data, title }) => {
 
         ctx.save();
 
-        ctx.fillStyle = 'red';
-        ctx.font = 'bolder 12px Arial';
+        ctx.fillStyle = '#ccccdc';
+        ctx.font = 'bolder 14px Arial';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'bottom';
         ctx.fillText(
           data.labels[index],
           left,
-          y.getPixelForValue(index) - barThickness / 2 - 10
+          y.getPixelForValue(index) - barThickness / 2 - 2
         );
 
-        ctx.fillStyle = 'red';
-        ctx.font = 'bolder 12px Arial';
+        ctx.fillStyle = '#57c05e';
+        ctx.font = 'bolder 16px Arial';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.fillText(dataPoint, xPosition, y.getPixelForValue(index));
@@ -122,7 +121,13 @@ const BarGraph = ({ data, title }) => {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: `${data.datasets[0].data.length * 60}px`
+      }}
+    >
       <Bar
         options={options}
         data={data}
