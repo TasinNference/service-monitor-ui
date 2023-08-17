@@ -20,7 +20,7 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
   const maxValRef = useRef(0);
   const [rightPadding, setRightPadding] = useState(0);
   const chartsArr = ['proc_by_cpu_percent', 'proc_by_memory_percent'];
-  const [chartData, setChartData] = useState(null);
+  const [chartData, setChartData] = useState([]);
   const diff = dateTime.diff(moment(), 'm');
 
   const queries = chartsArr.map(async (item) => {
@@ -66,30 +66,46 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
   }, [dateTime]);
 
   return (
-    <div
-      style={{
-        padding: '15px',
-        display: 'grid',
-        rowGap: '50px'
-      }}
-    >
-      {chartsArr.map((item, index) => {
-        return (
-          chartData && (
-            <>
-              <BarGraph
-                title={item}
-                data={chartData[index]}
-                rightPadding={rightPadding}
-                setRightPadding={setRightPadding}
-                maxVal={maxVal}
-              />
-              {index === 0 && <Divider />}
-            </>
-          )
-        );
-      })}
-    </div>
+    <>
+      {(chartData[0] && chartData[0]?.datasets[0]?.data?.length) > 0 ? (
+        <div
+          style={{
+            padding: '15px',
+            display: 'grid',
+            rowGap: '50px'
+          }}
+        >
+          {chartsArr.map((item, index) => {
+            return (
+              chartData && (
+                <>
+                  <BarGraph
+                    title={item}
+                    data={chartData[index]}
+                    rightPadding={rightPadding}
+                    setRightPadding={setRightPadding}
+                    maxVal={maxVal}
+                  />
+                  {index === 0 && <Divider />}
+                </>
+              )
+            );
+          })}
+        </div>
+      ) : (
+        <div
+          style={{
+            height: '100px',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div>No Data</div>
+        </div>
+      )}
+    </>
   );
 });
 
