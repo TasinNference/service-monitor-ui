@@ -1,7 +1,7 @@
 import { InfluxDB } from '@influxdata/influxdb-client';
 
 const queryApi = new InfluxDB({
-  url: 'http://cms.pramana.com:8086',
+  url: process.env.REACT_APP_INFLUX_URL,
   token: process.env.REACT_APP_INFLUX_TOKEN
 }).getQueryApi('pramana');
 
