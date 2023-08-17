@@ -93,7 +93,7 @@ const BarGraph = ({ data, title, rightPadding, setRightPadding, maxVal }) => {
         scales: { x, y }
       } = chart;
 
-      const barThickness = chart.getDatasetMeta(0).data[0].height;
+      const barThickness = chart.getDatasetMeta(0).data[0]?.height;
 
       data.datasets[0].data.forEach((dataPoint, index) => {
         const xPosition = right + rightPaddingRef.current + 20;
