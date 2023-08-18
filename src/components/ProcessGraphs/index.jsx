@@ -12,6 +12,7 @@ import {
 } from 'chart.js';
 import BarGraph from '../BarGraph';
 import { Divider } from '@mui/material';
+import axios from '../../configs/axios';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
 
@@ -20,57 +21,64 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
   const maxValRef = useRef(0);
   const [rightPadding, setRightPadding] = useState(0);
   const chartsArr = ['proc_by_cpu_percent', 'proc_by_memory_percent'];
-  const [chartData, setChartData] = useState([]);
+  const [chartData, setChartData] = useState(null);
   const diff = dateTime.diff(moment(), 'm');
-
-  const queries = chartsArr.map(async (item) => {
-    const rowsArr = [];
-    for await (const { values, tableMeta } of queryApi.iterateRows(
-      `from(bucket:"metrics")
-      |> range(start: ${diff !== 0 ? `${diff * 60}s` : '-15s'}, stop: ${
-        diff !== 0 ? `${diff * 60 + 15}s` : 'now()'
-      })
-      |> filter(fn: (r) => r._measurement == "${item}" and r.machine_name == "${
-        machine.machine_name
-      }")`
-    )) {
-      const o = tableMeta.toObject(values);
-      rowsArr.push(o);
-    }
-    return rowsArr;
-  });
-
-  const getData = async () => {
-    const data = await Promise.all(queries);
-    setChartData(
-      data?.map((item) => ({
-        labels: item.map((p) => p._field),
-        datasets: [
-          {
-            barPercentage: 0.3,
-            categoryPercentage: 1,
-            backgroundColor: '#57c05e',
-            data: item.map((p) => {
-              if (p._value > maxValRef.current) maxValRef.current = p._value;
-              return Math.round(p._value * 10) / 10;
-            })
-          }
-        ]
-      }))
-    );
-    setMaxVal(maxValRef.current);
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const queries = chartsArr.map(async (item) => {
+      console.log('queries');
+      const rowsArr = [];
+      try {
+        const response = (
+          await axios.post('/', {
+            measurement: item,
+            machine_name: machine.machine_name,
+            start: diff !== 0 ? `${diff * 60}s` : '-15s',
+            stop: diff !== 0 ? `${diff * 60 + 15}s` : 'now()'
+          })
+        ).data;
+
+        for (const item of response) {
+          rowsArr.push(item);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      return rowsArr;
+    });
+
+    const getData = async () => {
+      const data = await Promise.all(queries);
+      setChartData(
+        data?.map((item) => ({
+          labels: item.map((p) => p._field),
+          datasets: [
+            {
+              barPercentage: 0.3,
+              categoryPercentage: 1,
+              backgroundColor: '#57c05e',
+              data: item.map((p) => {
+                if (p._value > maxValRef.current) maxValRef.current = p._value;
+                return Math.round(p._value * 10) / 10;
+              })
+            }
+          ]
+        }))
+      );
+      setLoading(false);
+      setMaxVal(maxValRef.current);
+    };
     getData();
   }, [dateTime]);
 
   return (
     <>
-      {(chartData[0] && chartData[0]?.datasets[0]?.data?.length) > 0 ? (
+      {(!loading && chartData[0] && chartData[0]?.datasets[0]?.data?.length) >
+        0 && (
         <div
           style={{
-            padding: '15px',
+            padding: '25px',
             display: 'grid',
             rowGap: '50px'
           }}
@@ -92,19 +100,21 @@ const ProcessGraphs = memo(({ dateTime, machine }) => {
             );
           })}
         </div>
-      ) : (
-        <div
-          style={{
-            height: '100px',
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <div>No Data</div>
-        </div>
       )}
+      {!loading &&
+        (!chartData[0] || chartData[0]?.datasets[0]?.data?.length === 0) && (
+          <div
+            style={{
+              height: '100px',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <div>No Data</div>
+          </div>
+        )}
     </>
   );
 });

@@ -38,7 +38,7 @@ const BarGraph = ({ data, title, rightPadding, setRightPadding, maxVal }) => {
     indexAxis: 'y',
     layout: {
       padding: {
-        right: rightPadding + 20
+        right: rightPadding + 50
       }
     },
     scales: {
@@ -96,7 +96,7 @@ const BarGraph = ({ data, title, rightPadding, setRightPadding, maxVal }) => {
       const barThickness = chart.getDatasetMeta(0).data[0]?.height;
 
       data.datasets[0].data.forEach((dataPoint, index) => {
-        const xPosition = right + rightPaddingRef.current + 20;
+        const xPosition = right + rightPaddingRef.current + 50;
 
         ctx.save();
 

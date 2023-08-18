@@ -8,35 +8,37 @@ import {
   TableRow
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import queryApi from '../../configs/queryApi';
+import axios from '../../configs/axios';
 
 const ServicesTable = ({ machine, refresh }) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   async function getRows() {
-    console.log('getRows');
-    const fluxQuery = `from(bucket:"metrics") |> range(start: -15s) |> filter(fn: (r) => r._measurement == "services" and r.machine_name == "${machine}")`;
-    const rowsArr = {};
-    for await (const { values, tableMeta } of queryApi.iterateRows(fluxQuery)) {
-      // the following line creates an object for each row
-      const o = tableMeta.toObject(values);
-      // console.log(JSON.stringify(o, null, 2))
-      rowsArr[o._field] = o;
-
-      // alternatively, you can get only a specific column value without
-      // the need to create an object for every row
-      // console.log(tableMeta.get(row, '_time'))
+    try {
+      const rowsArr = {};
+      const response = (
+        await axios.post('/', {
+          measurement: 'services',
+          machine_name: machine,
+          start: '-15s',
+          stop: 'now()'
+        })
+      ).data;
+      for (const item of response) {
+        rowsArr[item._field] = item;
+      }
+      setRows(
+        Object.values(rowsArr).sort(
+          (a, b) => statuses[a._value].order - statuses[b._value].order
+        )
+      );
+    } catch (error) {
+      console.log(error);
     }
-    setRows(
-      Object.values(rowsArr).sort(
-        (a, b) => statuses[a._value].order - statuses[b._value].order
-      )
-    );
     setLoading(false);
   }
 
   useEffect(() => {
-    console.log('machine', machine);
     if (machine) getRows();
   }, [machine]);
 
@@ -70,7 +72,7 @@ const ServicesTable = ({ machine, refresh }) => {
   };
 
   useEffect(() => {
-    getRows();
+    if (machine) getRows();
   }, [refresh]);
 
   // const rows = [
@@ -87,31 +89,36 @@ const ServicesTable = ({ machine, refresh }) => {
 
   return (
     <div style={{ height: '100%', overflow: 'auto', position: 'relative' }}>
-      <Table
-        stickyHeader
-        sx={{ position: 'absolute', top: 0, left: 0, width: '100%' }}
-      >
-        <TableHead>
-          {columns.map((column) => (
-            <TableCell key={column.id} align={column.align}>
-              {column.label}
-            </TableCell>
-          ))}
-        </TableHead>
-        {!loading && rows.length > 0 && (
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow>
-                <TableCell>
-                  <Chip color={statuses[row._value].color} label={row._value} />
-                </TableCell>
-                <TableCell>{row._field}</TableCell>
-                <TableCell>{new Date(row._time).toLocaleString()}</TableCell>
-              </TableRow>
+      {!loading && rows.length > 0 && (
+        <Table
+          stickyHeader
+          sx={{ position: 'absolute', top: 0, left: 0, width: '100%' }}
+        >
+          <TableHead>
+            {columns.map((column) => (
+              <TableCell key={column.id} align={column.align}>
+                {column.label}
+              </TableCell>
             ))}
-          </TableBody>
-        )}
-      </Table>
+          </TableHead>
+          {!loading && rows.length > 0 && (
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow>
+                  <TableCell>
+                    <Chip
+                      color={statuses[row._value].color}
+                      label={row._value}
+                    />
+                  </TableCell>
+                  <TableCell>{row._field}</TableCell>
+                  <TableCell>{new Date(row._time).toLocaleString()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          )}
+        </Table>
+      )}
       {!loading && rows.length === 0 && (
         <div
           style={{

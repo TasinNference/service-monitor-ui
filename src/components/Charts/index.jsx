@@ -18,6 +18,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import HistoryIcon from '@mui/icons-material/History';
 import queryApi from '../../configs/queryApi';
 import ProcessGraphs from '../ProcessGraphs';
+import axios from '../../configs/axios';
 
 function Charts({ machine, refresh, panelRef, panelHeight }) {
   const chartsArr = ['CPU_Usage', 'Memory_Usage', 'Disk_Usage'];
@@ -32,26 +33,25 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
   const [stopRefresh, setStopRefresh] = useState(false);
   const [openPicker, setOpenPicker] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [chartData, setChartData] = useState([]);
+  const [chartData, setChartData] = useState({});
 
-  const getGraphData = (custom) => {
+  const getGraphData = async (custom) => {
     const pastDiff = timeRange[0].diff(moment(), 'minutes');
     const nowDiff = timeRange[1].diff(moment(), 'minutes');
-    const queries = chartsArr.map(async (item) => {
-      const rowsArr = [];
-      for await (const { values, tableMeta } of queryApi.iterateRows(
-        `from(bucket: "metrics")
-            |> range(start: ${pastDiff}m, stop: ${
-              nowDiff === 0 ? 'now()' : `${nowDiff}m`
-            })
-            |> filter(fn: (r) => r._measurement == "resources" and r._field == "${item}" and r.machine_name == "${
-              machine?.machine_name
-            }")`
-      )) {
-        const o = tableMeta.toObject(values);
-        rowsArr.push(o);
+    const response = (
+      await axios.post('/', {
+        measurement: 'resources',
+        machine_name: machine.machine_name,
+        start: `${pastDiff}m`,
+        stop: nowDiff === 0 ? 'now()' : `${nowDiff}m`
+      })
+    ).data;
+    const tempObj = {};
+    chartsArr.forEach((title) => (tempObj[title] = []));
+    response.forEach((item) => {
+      if (chartsArr.includes(item._field)) {
+        tempObj[item._field].push(item);
       }
-      return rowsArr;
     });
 
     const formatData = (arr) => {
@@ -61,36 +61,34 @@ function Charts({ machine, refresh, panelRef, panelHeight }) {
       }));
     };
 
-    const getData = async () => {
-      const data = await Promise.all(queries);
-      setChartData(
-        data.map((item) => ({
+    setChartData(
+      chartsArr.map((title) => {
+        return {
           datasets: [
-            { data: formatData(item), pointRadius: 0, borderColor: '#73bf69' }
+            {
+              data: formatData(tempObj[title]),
+              pointRadius: 0,
+              borderColor: '#73bf69'
+            }
           ]
-        }))
-      );
-    };
+        };
+      })
+    );
 
-    getData();
     const range = custom ? timeRange : getTime();
     setTimeRange(range);
     setLoading(false);
   };
 
   useEffect(() => {
-    if (!stopRefresh) {
+    if (!stopRefresh && machine) {
       getGraphData();
     }
   }, [refresh]);
 
   useEffect(() => {
-    getGraphData(true);
-  }, [timeRange]);
-
-  useEffect(() => {
-    if (machine) getGraphData();
-  }, [machine]);
+    if (machine) getGraphData(true);
+  }, [timeRange, machine]);
 
   const resetTime = () => {
     const range = getTime();
